@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "ustorage"
+version = "0.1.0"
+description = ""
+authors = ["utan <iw.utan@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+fastapi = "^0.100.1"
+uvicorn = "^0.23.1"
+python-multipart = "^0.0.6"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
