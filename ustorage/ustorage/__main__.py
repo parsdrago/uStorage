@@ -28,7 +28,7 @@ class SqliteDatabase:
         self.con = sqlite3.connect("tutorial.sqlite3", check_same_thread=False)
         cur = self.con.cursor()
         try:
-            cur.execute("CREATE TABLE objects (name text, blob none, content_type text, added_at text);")
+            cur.execute("CREATE TABLE objects (name text unique, blob none, content_type text, added_at text);")
             self.con.commit()
         except:
             pass
@@ -43,6 +43,12 @@ class SqliteDatabase:
         cur.execute("SELECT * FROM objects WHERE name=?;", [name])
         row = cur.fetchone()
         return {"name": row[0], "content": row[1], "content_type": row[2], "added_at": row[3]}
+
+    def get_list(self):
+        cur = self.con.cursor()
+        cur.execute("SELECT * FROM objects")
+        rows = cur.fetchall()
+        return [{"name": row[0], "content_type": row[2], "added_at": row[3]} for row in rows]
 
 
 db = SqliteDatabase()
@@ -62,6 +68,11 @@ async def index():
 async def post_obeject(name: Annotated[str, Form()], content: Annotated[UploadFile, File()], database: Database = Depends(get_db)):
     database.add(name, content.content_type , content.file.read())
     return 200
+
+
+@app.get("/lists")
+async def get(database: Database = Depends(get_db)):
+    return db.get_list()
 
 
 @app.get("/get")
