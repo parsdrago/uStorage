@@ -1,12 +1,11 @@
+import sqlite3
+from datetime import datetime
 from typing import Annotated
-from fastapi import FastAPI, Request, Response, Depends, File, Form, UploadFile
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import RedirectResponse
 
 import uvicorn
-from datetime import datetime
-import sqlite3
-
+from fastapi import Depends, FastAPI, File, Form, Request, Response, UploadFile
+from fastapi.responses import RedirectResponse
+from fastapi.templating import Jinja2Templates
 
 app = FastAPI()
 
@@ -21,7 +20,7 @@ class Database:
         self.db[name] = {
             "content_type": content_type,
             "content": content,
-            "added_at": datetime.utcnow()
+            "added_at": datetime.utcnow(),
         }
 
     def get(self, name):
@@ -33,30 +32,44 @@ class SqliteDatabase:
         self.con = sqlite3.connect("tutorial.sqlite3", check_same_thread=False)
         cur = self.con.cursor()
         try:
-            cur.execute("CREATE TABLE objects (name text unique, blob none, content_type text, added_at text);")
+            cur.execute(
+                "CREATE TABLE objects (name text unique, blob none, content_type text, added_at text);"
+            )
             self.con.commit()
         except:
             pass
 
     def add(self, name: str, content_type: str, content: bytes):
         cur = self.con.cursor()
-        cur.execute("INSERT INTO objects VALUES (?, ?, ?, ?);", [name, content, content_type, datetime.utcnow()])
+        cur.execute(
+            "INSERT INTO objects VALUES (?, ?, ?, ?);",
+            [name, content, content_type, datetime.utcnow()],
+        )
         self.con.commit()
 
     def get(self, name):
         cur = self.con.cursor()
         cur.execute("SELECT * FROM objects WHERE name=?;", [name])
         row = cur.fetchone()
-        return {"name": row[0], "content": row[1], "content_type": row[2], "added_at": row[3]}
+        return {
+            "name": row[0],
+            "content": row[1],
+            "content_type": row[2],
+            "added_at": row[3],
+        }
 
     def get_list(self):
         cur = self.con.cursor()
         cur.execute("SELECT * FROM objects")
         rows = cur.fetchall()
-        return [{"name": row[0], "content_type": row[2], "added_at": row[3]} for row in rows]
+        return [
+            {"name": row[0], "content_type": row[2], "added_at": row[3]} for row in rows
+        ]
 
 
 db = SqliteDatabase()
+
+
 def get_db():
     try:
         yield db
@@ -66,12 +79,18 @@ def get_db():
 
 @app.get("/")
 async def index(request: Request, database: Database = Depends(get_db)):
-    return templates.TemplateResponse("index.html", {"request": request, "list": database.get_list()})
+    return templates.TemplateResponse(
+        "index.html", {"request": request, "list": database.get_list()}
+    )
 
 
 @app.post("/add")
-async def post_obeject(name: Annotated[str, Form()], content: Annotated[UploadFile, File()], database: Database = Depends(get_db)):
-    database.add(name, content.content_type , content.file.read())
+async def post_obeject(
+    name: Annotated[str, Form()],
+    content: Annotated[UploadFile, File()],
+    database: Database = Depends(get_db),
+):
+    database.add(name, content.content_type, content.file.read())
     return RedirectResponse("/", status_code=301)
 
 
