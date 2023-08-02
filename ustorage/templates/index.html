@@ -4,27 +4,59 @@
 <head>
     <meta charset="utf-8">
     <title>uStorage</title>
+
     <style>
-        form {
-            border: solid 1px #aaa;
+        table {
+            text-align: left;
+            border-collapse: collapse;
+            margin: 1rem auto;
+        }
+
+        tr {
+            height: 3rem;
+            border-bottom: solid 1px #eaeaea;
+        }
+
+        tr:nth-of-type(n+2):hover {
+            background-color: #f3f3f3;
+        }
+
+        td,
+        th {
+            padding: 0 1rem;
         }
     </style>
 </head>
 
 <body>
-    <form action="add" method="post" enctype="multipart/form-data">
-        <input type="text" name="name">
-        <input type="file" name="content">
-        <input type="submit">
-    </form>
-    <form action="get" method="get">
-        <input type="text" name="name">
-        <input type="submit">
-    </form>
-    <form action="get-object" method="get">
-        <input type="text" name="name">
-        <input type="submit">
-    </form>
+    <div>
+        <a href="">更新</a>
+        <div>
+            <form action="add" method="post" enctype="multipart/form-data">
+                <input type="text" name="name">
+                <input type="file" name="content">
+                <input type="submit">
+            </form>
+        </div>
+    </div>
+    <table>
+        <tr>
+            <th>name</th>
+            <th>content type</th>
+            <th>added at</th>
+            <th></th>
+        </tr>
+        {% for l in list %}
+        <tr>
+            <td>{{l.name}}</td>
+            <td>{{l.content_type}}</td>
+            <td>{{l.added_at.split(".")[0]}}</td>
+            <td>
+                <a href="{{ url_for('get_object') }}?name={{ l.name }}" target="_download">↓</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
 </body>
 
 </html>

@@ -1,11 +1,16 @@
 from typing import Annotated
-from fastapi import FastAPI, Response, Depends, File, Form, UploadFile
+from fastapi import FastAPI, Request, Response, Depends, File, Form, UploadFile
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import RedirectResponse
+
 import uvicorn
 from datetime import datetime
 import sqlite3
 
 
 app = FastAPI()
+
+templates = Jinja2Templates("./templates")
 
 
 class Database:
@@ -60,14 +65,14 @@ def get_db():
 
 
 @app.get("/")
-async def index():
-    return Response(content=open("./templates/index.html").read(), status_code=200, media_type="text/html")
+async def index(request: Request, database: Database = Depends(get_db)):
+    return templates.TemplateResponse("index.html", {"request": request, "list": database.get_list()})
 
 
 @app.post("/add")
 async def post_obeject(name: Annotated[str, Form()], content: Annotated[UploadFile, File()], database: Database = Depends(get_db)):
     database.add(name, content.content_type , content.file.read())
-    return 200
+    return RedirectResponse("/", status_code=301)
 
 
 @app.get("/lists")
